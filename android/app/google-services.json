@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "184127431754",
+    "firebase_url": "https://ajay-try-default-rtdb.firebaseio.com",
     "project_id": "ajay-try",
     "storage_bucket": "ajay-try.appspot.com"
   },
@@ -10,6 +11,25 @@
         "mobilesdk_app_id": "1:184127431754:android:d1475780130de8c4dbf2b3",
         "android_client_info": {
           "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBslbArKObi_IJ4R3bZ-2XhT36cbr1KIho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184127431754:android:916b226eacdad58edbf2b3",
+        "android_client_info": {
+          "package_name": "com.example.jaimin"
         }
       },
       "oauth_client": [],
