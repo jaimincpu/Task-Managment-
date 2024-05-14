@@ -1,20 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/Home_page/homepage.dart';
-import 'package:flutter_application_1/login/Forget_psw.dart';
-import 'package:flutter_application_1/login/SignUP.dart';
+import 'package:flutter_application_1/Admin/AdminPanel.dart';
+import 'package:flutter_application_1/Home_page/HomePanel.dart';
+
+import 'Forget_psw.dart';
+import 'SignUP.dart';
+
 
 class LoginPage extends StatelessWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
-    var screenHeight = screenSize.height;
-    var screenWidth = screenSize.width;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login"),
+        title: Center(child: Text("Login")),
         backgroundColor: Colors.blue,
       ),
       body: const Login(),
@@ -35,127 +37,161 @@ class _LoginState extends State<Login> {
   String _email = '';
   String _password = '';
 
+Future<void> checkUserRole(UserCredential userCredential, BuildContext context) async {
+  DocumentSnapshot docSnapshot = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
+  if (docSnapshot.exists) {
+    Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+    if (data['User'] == 'Employ') {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeDash()));
+    } else if (data['User'] == 'Admin') {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AdminPanel()));
+    }
+  } else {
+    print('User does not exist');
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
-    var screenHeight = MediaQuery.of(context).size.height;
-    var screenWidth = MediaQuery.of(context).size.width;
     return Form(
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
-          child: Container(
-            height: screenHeight / 2,
-            width: screenWidth / 2,
-            color: Colors.lightBlue,
-            child: Column(
-              children: [
-                Text(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
                   "Login",
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
-                Center(
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        decoration: InputDecoration(
-                          border: UnderlineInputBorder(),
-                          labelText: 'username',
-                          hintText: 'Enter your username',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          return null;
-                        },
-                        onSaved: (value) => _email = value!,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    border: new OutlineInputBorder(
+                      borderRadius: new BorderRadius.circular(25.0),
+                      borderSide: new BorderSide(),
+                    ),
+                    labelText: 'Email',
+                    hintText: 'Enter your Email',
+
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _email = value!,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    border: new OutlineInputBorder(
+                      borderRadius: new BorderRadius.circular(25.0),
+                      borderSide: new BorderSide(),
+                    ),
+                    labelText: 'password',
+                    hintText: 'Enter your password',
+                  ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _password = value!,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => forgetpsw(),
                       ),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          border: UnderlineInputBorder(),
-                          labelText: 'password',
-                          hintText: 'Enter your password',
-                        ),
-                        obscureText: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          return null;
-                        },
-                        onSaved: (value) => _password = value!,
-                      ),
-                      Center(
-                        child: Row(
-                          children: [
-                            ElevatedButton(
-                              child: Text('LogIN'),
-                              onPressed: () async {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-                                  try {
-                                    final user =
-                                        await _auth.signInWithEmailAndPassword(
-                                      email: _email,
-                                      password: _password,
-                                    );
-                                    if (user != null) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Login Successful'),
-                                        ),
-                                      );
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => homepage(),
-                                        ),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
-                                      SnackBar(content: Text(e.toString())),
-                                    );
-                                  }
-                                }
-                              },
-                            ),
-                            ElevatedButton(
-                              child: Text('SignUp'),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SignUp(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => forgetpsw(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'Forget password',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
+                    );
+                  },
+                  child: Container(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'Forget password',
+                      style: TextStyle(fontSize: 14),
+
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(0.5),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Center(
+                        child: ElevatedButton(
+                          child: Text('LogIN'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent
+                          ),
+                          onPressed: () async {
+  if (_formKey.currentState!.validate()) {
+    _formKey.currentState!.save();
+    try {
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: _email,
+        password: _password,
+      );
+      if (userCredential != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login Successful'),
+          ),
+        );
+        checkUserRole(userCredential, context);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+},
+
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: ElevatedButton(
+                          child: Text('SignUp'),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SignUp(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

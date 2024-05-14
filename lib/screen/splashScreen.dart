@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../login/LogChecker.dart';
+
 class SplashScreen extends StatefulWidget {
   final Widget? child;
   const SplashScreen({super.key, this.child});
@@ -12,14 +14,16 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    Future.delayed(Duration(seconds: 1), () {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => widget.child!),
-          (route) => false);
-    });
-    super.initState();
-  }
+  super.initState();
+  Future.delayed(Duration(seconds: 1), () {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LogChecker()),
+      (route) => false,
+    );
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {

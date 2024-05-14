@@ -21,8 +21,18 @@ class _forgetpswState extends State<forgetpsw> {
     try {
       await FirebaseAuth.instance
           .sendPasswordResetEmail(email: _emailController.text.trim());
+      showDialog(context: context, builder: (context){
+        return AlertDialog(
+          content: Text('link has been set check your inbox'),
+        );
+      });
     } on FirebaseAuthException catch (e) {
       print(e);
+      showDialog(context: context, builder: (context){
+        return AlertDialog(
+          content: Text(e.message.toString()),
+        );
+      });
     }
   }
 
@@ -35,14 +45,23 @@ class _forgetpswState extends State<forgetpsw> {
       body: Center(
         child: Column(
           children: [
-            Text(
-                "Enter your registered email address here to set a password reset link"),
-            TextFormField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                border: UnderlineInputBorder(),
-                labelText: 'Email',
-                hintText: 'Enter your email',
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                  "Enter your registered email address here to get a password reset link on your email"),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  border: new OutlineInputBorder(
+                    borderRadius: new BorderRadius.circular(25.0),
+                    borderSide: new BorderSide(),
+                  ),
+                  labelText: 'Email',
+                  hintText: 'Enter your email',
+                ),
               ),
             ),
             SizedBox(height: 10),
