@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AdminDash extends StatelessWidget {
   @override
@@ -7,6 +8,7 @@ class AdminDash extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('User List'),
+        backgroundColor: Colors.deepPurple,
       ),
       body: UserList(),
     );
@@ -25,8 +27,9 @@ class _UserListState extends State<UserList> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: const Duration(seconds: 3), vsync: this);
-    _animation = Tween<Offset>(begin: Offset(0.0, -1.0), end: Offset.zero).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _controller = AnimationController(duration: const Duration(seconds: 1), vsync: this);
+    _animation = Tween<Offset>(begin: Offset(0.0, -1.0), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
     _controller.forward();
   }
 
@@ -42,25 +45,21 @@ class _UserListState extends State<UserList> with SingleTickerProviderStateMixin
       stream: FirebaseFirestore.instance.collection('users').snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
-          return Center(
-            child: Text('Error: ${snapshot.error}'),
-          );
+          return Center(child: Text('Error: ${snapshot.error}'));
         }
-
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return Center(child: CircularProgressIndicator());
         }
-
         final users = snapshot.data!.docs;
-
+        var filteredUsers = users.where((userDoc) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          return userData['name'] != null && userData['name'] != 'Unknown';
+        }).toList();
         return ListView.builder(
-          itemCount: users.length,
+          itemCount: filteredUsers.length,
           itemBuilder: (context, index) {
-            final userDoc = users[index];
+            final userDoc = filteredUsers[index];
             final userData = userDoc.data() as Map<String, dynamic>;
-
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: InkWell(
@@ -68,7 +67,7 @@ class _UserListState extends State<UserList> with SingleTickerProviderStateMixin
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PopUpPage(userData: userData, docId: userDoc.id), // Pass the document ID to PopUpPage
+                      builder: (context) => PopUpPage(userData: userData, userId: userDoc.id),
                     ),
                   );
                 },
@@ -76,13 +75,11 @@ class _UserListState extends State<UserList> with SingleTickerProviderStateMixin
                   position: _animation,
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(width: 1, color: Colors.grey),
-                      ),
+                      border: Border(bottom: BorderSide(width: 1, color: Colors.grey)),
                     ),
                     padding: EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
-                      title: Text(userData['name'] ?? 'Unknown'),
+                      title: Text(userData['name']),
                     ),
                   ),
                 ),
@@ -97,26 +94,37 @@ class _UserListState extends State<UserList> with SingleTickerProviderStateMixin
 
 class PopUpPage extends StatelessWidget {
   final Map<String, dynamic> userData;
-  final String docId; // Add a new parameter for the document ID
+  final String userId;
+  final TextEditingController taskController = TextEditingController();
 
-  final taskController = TextEditingController();
+  PopUpPage({Key? key, required this.userData, required this.userId}) : super(key: key);
 
-  PopUpPage({Key? key, required this.userData, required this.docId }) : super(key: key); // Include the document ID in the constructor
+  Future<void> saveTask(BuildContext context, String taskName, String userName) async {
+    try {
+      final assignmentsRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('assignments');
+      await assignmentsRef.add({
+        'taskName': taskName,
+        'dueDate': Timestamp.now(),
+        'assignedBy': FirebaseAuth.instance.currentUser!.displayName,
+      });
+      Navigator.pop(context); // Close the dialog after task is saved
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error assigning task: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final userName = userData['name'] ?? 'Unknown';
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Task Assignment'),
-      ),
+      appBar: AppBar(title: Text('Task Assignment')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: <Widget>[
-            Text("Assign task to $userName "),
-            // , (UID: $docId)
+            Text("Assign task to $userName"),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextFormField(
@@ -128,7 +136,7 @@ class PopUpPage extends StatelessWidget {
                     borderSide: BorderSide(),
                   ),
                   labelText: 'Task',
-                  hintText: 'Enter The task to Assign',
+                  hintText: 'Enter the task to assign',
                 ),
               ),
             ),
@@ -136,20 +144,17 @@ class PopUpPage extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 child: Text('Submit'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                ),
-                onPressed: () {
-                  FirebaseFirestore.instance
-                      .collection('task')
-                      .doc(docId)
-                      .set({
-                    'task': taskController.text,
-                    'name': userName,
-                  });
-
-                  taskController.clear();
-                  Navigator.pop(context);
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+                onPressed: () async {
+                  final taskName = taskController.text;
+                  if (taskName.isNotEmpty) {
+                    await saveTask(context, taskName, userName);
+                    taskController.clear();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please enter a task name')),
+                    );
+                  }
                 },
               ),
             ),

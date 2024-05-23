@@ -14,6 +14,7 @@ class _TqueryState extends State<Tquery> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Query List'),
+        backgroundColor: Colors.deepPurple,
       ),
       body: QueryList(),
     );
@@ -34,7 +35,7 @@ class _QueryListState extends State<QueryList>
   void initState() {
     super.initState();
     _controller =
-        AnimationController(duration: const Duration(seconds: 3), vsync: this);
+        AnimationController(duration: const Duration(seconds: 1), vsync: this);
     _animation = Tween<Offset>(begin: Offset(0.0, -1.0), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
     _controller.forward();

@@ -28,29 +28,38 @@ class _queryState extends State<Query> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text('Query'))),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('task').doc(uid).get(),
-        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
+       appBar: AppBar(
+      title: Text('Query', style: TextStyle(color: Colors.white), textAlign: TextAlign.center,),
+        backgroundColor: Colors.deepPurple,
+        
+      ),
+      body: StreamBuilder<DocumentSnapshot>(
+  stream: FirebaseFirestore.instance.collection('task').doc(uid).snapshots(),
+  builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(child: CircularProgressIndicator());
+    }
 
-          if (snapshot.hasError) {
-            return Text("Something went wrong");
-          }
+    if (snapshot.hasError) {
+      return Text("Something went wrong");
+    }
 
-          if (snapshot.hasData && !snapshot.data!.exists) {
-            return Text("Document does not exist");
-          }
+    if (snapshot.hasData && !snapshot.data!.exists) {
+      return Text("Document does not exist");
+    }
 
-          if (snapshot.connectionState == ConnectionState.done) {
-            Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+    if (snapshot.connectionState == ConnectionState.active) {
+      Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
-                children: <Widget>[
-                  Text("Task: ${data['task']}"),
+                children: <Widget>[ Container(
+                 child: Text("Task: ${data['task']
+                //  .length > 100 ? data['task'].substring(0,50)+'...':data['task']
+                 }", maxLines: 3,style: TextStyle(fontSize: 18),
+    overflow: TextOverflow.ellipsis,),
+                ),
                   Column(
                     children: <Widget>[        
                                 Padding(

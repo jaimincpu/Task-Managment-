@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Admin/AdminHome.dart';
 import 'package:flutter_application_1/Admin/Tquery.dart';
+
 import 'package:flutter_application_1/Admin/aProfie.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 import 'TaskAsi.dart';
@@ -19,7 +20,7 @@ class _AdminPanelState extends State<AdminPanel> {
   List<Widget> _buildScreens() {
     return [
       AdminDash(),
-      TAskAsi(),
+     TaskAsi(),
       Tquery(),
       AProfile(),
     ];
