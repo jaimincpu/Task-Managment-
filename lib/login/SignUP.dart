@@ -325,6 +325,7 @@ class SignUpState extends State<SignUp> {
           'phoneNo': phoneNo,
           'Username': Username,
           'User': 'Employ',
+          'uid':userCredential.user!.uid,
   
 
         });

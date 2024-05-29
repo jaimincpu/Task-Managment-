@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Admin/Tquery.dart';
 import 'package:flutter_application_1/Home_page/Assignment.dart';
 import 'package:flutter_application_1/Home_page/Querry.dart';
 import 'package:flutter_application_1/Home_page/profile.dart';
+import 'package:flutter_application_1/chat/chat.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 
 
@@ -18,7 +20,7 @@ class _HomeDashState extends State<HomeDash> {
   List<Widget> _buildScreen() {
     return [
       Assignment(),
-      Query(), 
+      Chat(),
       Profile(),
      
     ];

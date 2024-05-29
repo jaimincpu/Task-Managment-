@@ -1,0 +1,309 @@
+class ChatPage extends StatefulWidget {
+  final String receiverEmail;
+  final String receiverUID;
+
+  const ChatPage({
+    Key? key,
+    required this.receiverEmail,
+    required this.receiverUID,
+  }) : super(key: key);
+
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final TextEditingController _messageController = TextEditingController();
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instanceUID;
+
+  const ChatPage({
+    Key?;
+
+  String _chatId = '';
+
+  @override
+  void initState() {
+    super.initState key,
+    required this.receiverEmail();
+    _getChat,
+    required this.receiverUID,Id();
+  }
+
+ 
+  void _getChatId }) : super(key: key);() async {
+    final
+
+  @override
+  _ currentUserID = _firebaseChatPageState createState() => _ChatPageAuth.currentUser!.uid;
+    final receiverUID =State();
+}
+
+class _ChatPageState extends State<ChatPage> {
+ widget.receiverUID;
+    List<String> ids =  final TextEditingController _messageController = [currentUserID, receiver TextEditingController();
+  final FirebaseUID];
+    ids.sortAuth _firebaseAuth(); // Ensure the IDs = FirebaseAuth.instance;
+  final are sorted to create a unique chat ID
+    FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+
+  String _chatId = setState(() {
+      _chatId = ids.join '';
+
+  @override
+  void init('_');
+    });
+ State() {
+    super.initState();
+    _get }
+
+  void _sendMessage() async {
+    final String message = _messageController.text.trim();
+    if (message.isEmpty) {
+      return; // Don't send empty messages
+    }
+
+    try {
+      final currentUserID = _firebaseAuth.currentUserChatId();
+ !.uid;
+      final currentUserEmail = _firebase }
+
+  void _getChatId() async {
+    finalAuth.currentUser!.email!;
+      final receiverEmail = currentUserID = _firebaseAuth.currentUser!.uid;
+    final receiverUID = widget.re widget.receiverEmail;
+
+      final chatMessage = {
+        'enderID':ceiverUID;
+    List<String> ids = [currentUserID, receiverUID];
+ currentUserID,
+        'enderEmail': currentUserEmail,
+        'eceiverID    ids.sort(); // Ensure the IDs are sorted': widget.receiverUID,
+        'eceiverEmail': to create a unique chat ID
+    setState(() { receiverEmail,
+        '
+      _chatId = ids.join('_');essage': message,
+        'timestamp': FieldValue
+    });
+  }
+
+  void _sendMessage() async {
+.serverTimestamp(),
+      };
+
+      await _firebaseFirestore
+             final String message = _messageController.text.trim();
+   .collection('chat_rooms')
+         .doc(_ if (message.isEmpty) {
+      return; // Don't send empty messages
+    }
+
+    trychatId)
+         .collection('messages')
+         .add(chatMessage);
+
+      _messageController.clear {
+      final currentUserID = _firebaseAuth.currentUser!.uid;
+      final currentUserEmail = _firebaseAuth.currentUser!.email();
+    } catch (e) {
+      ScaffoldMessenger.of(context).show!;
+      final receiverEmail = widget.receiverEmail;
+
+      finalSnackBar(
+        SnackBar(content: Text('Error sending message: $e chatMessage = {
+        'senderID': currentUserID,
+')),
+      );
+    }
+  }
+
+  Stream<QuerySnapshot> _getMessagesStream() {
+    return _firebaseFirestore
+       .collection('chat        'senderEmail': currentUserEmail,
+        'receiverID': widget.receiverUID,
+        'receiverEmail': receiverEmail,
+_rooms')
+       .doc(_chatId)
+       .collection('messages')
+        'message': message,
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+
+      await _firebaseFirestore
+       .orderBy('timestamp', ascending: true)
+       .snapshots();
+          .collection('chat_rooms')
+          .doc(_chatId)
+          .collection('  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.receiverEmail)),
+      body: Column(
+        childrenmessages')
+          .add(chatMessage);
+
+      _messageController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content:: [
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              Text('Error sending message: $e')),
+      );
+    }
+ stream: _getMessagesStream(),
+              builder: (context, snapshot) {
+                if (snapshot  }
+
+  Stream<QuerySnapshot> _getMessagesStream() {
+    return _firebaseFirestore
+        .collection('chat_rooms')
+        .doc(_chatId).hasError) {
+                  return Center(child: Text('Error loading messages: ${snapshot.error}'));
+
+        .collection('messages')
+        .orderBy('timestamp', ascending: true)
+        .snapshots();
+  }                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.receiverEmail());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty)),
+      body: Column(
+        children: [
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _) {
+                  return Center(child: Text('No messages yet.'));
+                }
+                return ListView.builder(
+getMessagesStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                                   reverse: false,
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    final return Center(child: Text('Error loading messages: ${snapshot.error}'));
+                }
+                if (snapshot.connectionState == ConnectionState.wait messageData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                    final senderEmail = messageData['ing) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (!snapshotsenderEmail'] as String;
+                    final message = messageData['message'] as String;
+                    final isCurrentUser = messageData['senderID'] == _firebaseAuth.currentUser!.uid;
+
+                    return Container(
+                      alignment: isCurrentUser? Alignment.centerRight : Alignment.centerLeft,
+                      padding: const EdgeInsets.hasData.all(10),
+                      || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('No messages yet.'));
+                }
+                return ListView.builder(
+ child: Column(
+                        crossAxisAlignment: isCurrentUser? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        children: [
+                          Text(senderEmail),
+                          const SizedBox(height: 5),
+                          ChatBubble(message: message), // Your ChatBubble widget here
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          _                  reverse: false,
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    final messageData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                    final senderEmail = messageData['senderEmail'] as String;
+                    final message = messageData['message'] as String;
+buildMessageInput(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageInput() {
+                    final isCurrentUser = messageData['senderID'] == _firebaseAuth.currentUser!.uid;
+
+                    return Container(
+                      alignment: isCurrentUser?    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _messageController,
+            decoration: InputDecoration(hintText Alignment.centerRight : Alignment.centerLeft,
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: isCurrentUser?: 'Enter message'),
+          ),
+        ),
+        IconButton(
+          onPressed: _sendMessage,
+          icon: Icon(Icons.send),
+        ),
+      ],
+    );
+  }
+}
+`` CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        children: [
+                          Text(senderEmail),
+                          const Sized`
+The error you're encountering is due to the fact that you're trying to access the `uid` property of the `currentUser` object before it's initialized. This is because the `currentUser` object is only initialized after the user has logged in.
+
+To fix this issue, you need to ensure that the user is logged in before accessing the `uid` property. You can do this by using the `FutureBuilder` widget to wait for the user to log in before building the chat page.
+
+Here's an updated version of the code:
+```dart
+class ChatPage extends StatefulWidget {
+  final String receiverEmail;
+  final String receiverUID;
+
+  const ChatPage({
+    Key? key,
+    required this.receiverEmail,
+    required this.receiverUID,
+  }) : super(key: key);
+
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+
+  String _chatId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getChatId();
+  }
+
+  void _getChatId() async {
+    final currentUser = await _firebaseAuth.currentUser();
+    if (currentUser!= null) {
+      final currentUserID = currentUser.uid;
+      final receiverUID = widget.receiverUID;
+      List<String> ids = [currentUserID, receiverUID];
+      ids.sort(); // Ensure the IDs are sorted to create a unique chat ID
+      setState(() {
+        _chatId = ids.join('_');
+      });
+    }
+  }
+
+  //... rest of the code remains the same...
+}
