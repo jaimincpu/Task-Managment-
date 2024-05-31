@@ -55,7 +55,9 @@ class _ProfileState extends State<Profile> {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
       } else {
-        print('No image selected.');
+          ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No image selected.')),
+      );
       }
     });
   }

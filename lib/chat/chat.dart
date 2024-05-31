@@ -94,7 +94,7 @@ class _ChatState extends State<Chat> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat Users')),
+      appBar: AppBar(title: const Text('Chat Users'), backgroundColor: Colors.deepPurple,),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _getUserStream(),
         builder: (context, snapshot) {

@@ -235,7 +235,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart'; // Import the file containing the TaskAsi widget
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TaskAsi extends StatefulWidget {
   const TaskAsi({super.key});
@@ -259,7 +259,14 @@ class _TaskAsiState extends State<TaskAsi> {
             return Center(child: CircularProgressIndicator());
           }
 
-          var users = snapshot.data!.docs;
+          // Get the current logged-in user ID
+          final currentUser = FirebaseAuth.instance.currentUser;
+          final currentUserId = currentUser?.uid;
+
+          // Filter out the current logged-in user
+          var users = snapshot.data!.docs
+              .where((doc) => doc.id != currentUserId)
+              .toList();
 
           return ListView.builder(
             itemCount: users.length,
@@ -292,19 +299,18 @@ class AssignmentList extends StatelessWidget {
   AssignmentList({required this.userId});
 
   Widget iconShow(String? statstask) {
-  if (statstask == 'Hold') {
-    return Icon(Icons.motion_photos_pause,
-        color: Color.fromARGB(255, 216, 14, 14));
-  } else if (statstask == 'processing') {
-    return Icon(Icons.emoji_flags_sharp,
-        color: Color.fromARGB(255, 18, 206, 62));
-  } else if (statstask == 'Completed') {
-    return Icon(Icons.check_box, color: Color.fromARGB(255, 9, 145, 224));
+    if (statstask == 'Hold') {
+      return Icon(Icons.motion_photos_pause,
+          color: Color.fromARGB(255, 216, 14, 14));
+    } else if (statstask == 'processing') {
+      return Icon(Icons.emoji_flags_sharp,
+          color: Color.fromARGB(255, 18, 206, 62));
+    } else if (statstask == 'Completed') {
+      return Icon(Icons.check_box, color: Color.fromARGB(255, 9, 145, 224));
+    }
+    // No need for an else block
+    return Icon(Icons.error_outline, color: Colors.grey);
   }
-  // No need for an else block
-  return Icon(Icons.error_outline, color: Colors.grey);
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -340,7 +346,8 @@ class AssignmentList extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TaskPopUpPage(docId: assignment.id,userId: userId),
+                      builder: (context) =>
+                          TaskPopUpPage(docId: assignment.id, userId: userId),
                     ),
                   );
                 },
@@ -352,6 +359,7 @@ class AssignmentList extends StatelessWidget {
     );
   }
 }
+
 class TaskPopUpPage extends StatefulWidget {
   final String docId;
   final String userId;
@@ -366,6 +374,7 @@ class _TaskPopUpPageState extends State<TaskPopUpPage> {
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _firestore = FirebaseFirestore.instance;
+  String taskName = '';
 
   @override
   void initState() {
@@ -374,20 +383,26 @@ class _TaskPopUpPageState extends State<TaskPopUpPage> {
   }
 
   Future<void> fetchData() async {
-    DocumentSnapshot document =
-        await _firestore.collection('users')
-            .doc(widget.userId)
-            .collection('assignments').doc(widget.docId).get();
+    DocumentSnapshot document = await _firestore
+        .collection('users')
+        .doc(widget.userId)
+        .collection('assignments')
+        .doc(widget.docId)
+        .get();
     setState(() {
       _controller.text = document['taskName'];
+      taskName = document['taskName'];
     });
   }
 
   Future<void> updateData() async {
     if (_formKey.currentState!.validate()) {
-      await _firestore.collection('users')
-            .doc(widget.userId)
-            .collection('assignments').doc(widget.docId).update({
+      await _firestore
+          .collection('users')
+          .doc(widget.userId)
+          .collection('assignments')
+          .doc(widget.docId)
+          .update({
         'taskName': _controller.text,
       });
       Navigator.pop(context);
@@ -395,9 +410,12 @@ class _TaskPopUpPageState extends State<TaskPopUpPage> {
   }
 
   Future<void> deleteField() async {
-    await _firestore.collection('users')
-            .doc(widget.userId)
-            .collection('assignments').doc(widget.docId).delete();
+    await _firestore
+        .collection('users')
+        .doc(widget.userId)
+        .collection('assignments')
+        .doc(widget.docId)
+        .delete();
     Navigator.pop(context);
   }
 
@@ -409,6 +427,7 @@ class _TaskPopUpPageState extends State<TaskPopUpPage> {
         padding: const EdgeInsets.all(8.0),
         child: Form(
           key: _formKey,
+          child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
               TextFormField(
@@ -419,7 +438,7 @@ class _TaskPopUpPageState extends State<TaskPopUpPage> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter some text';
+                    return 'Please enter some task';
                   }
                   return null;
                 },
@@ -440,8 +459,256 @@ class _TaskPopUpPageState extends State<TaskPopUpPage> {
                   ],
                 ),
               ),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey), // Add a border
+                  borderRadius:
+                      BorderRadius.circular(8.0), // Optional: Rounded corners
+                ),
+                padding: const EdgeInsets.all(8.0),
+                child: CommentSection(
+                  docId: widget.docId,
+                  userId: widget.userId,
+                  taskName: taskName,
+                ),
+              ),
             ],
           ),
+        ),
+        ),
+      ),
+    );
+  }
+}
+
+// commesnt section
+class CommentSection extends StatefulWidget {
+  final String docId;
+  final String userId;
+  final String taskName;
+
+  CommentSection({
+    required this.docId,
+    required this.userId,
+    required this.taskName,
+  });
+
+  @override
+  _CommentSectionState createState() => _CommentSectionState();
+}
+
+class _CommentSectionState extends State<CommentSection> {
+  final _commentController = TextEditingController();
+  final _replyController = TextEditingController();
+  final _firestore = FirebaseFirestore.instance;
+  User? user;
+  String Username = 'Anonymous';
+  String? replyingToCommentId;
+
+  @override
+  void initState() {
+    super.initState();
+    user = FirebaseAuth.instance.currentUser;
+    fetchUserName();
+  }
+
+ Future<void> fetchUserName() async {
+  if (user != null) {
+    DocumentSnapshot userDoc = await _firestore.collection('users').doc(user!.uid).get();
+    setState(() {
+      Username = userDoc['Username'] ?? 'Anonymous'; // Ensure this is 'Username'
+    });
+  }
+}
+
+  Future<void> addComment() async {
+    if (_commentController.text.isNotEmpty) {
+      await _firestore
+          .collection('users')
+          .doc(widget.userId)
+          .collection('assignments')
+          .doc(widget.docId)
+          .collection('comments')
+          .add({
+        'comment': _commentController.text,
+        'timestamp': FieldValue.serverTimestamp(),
+        'userId': user!.uid,
+        'Username': Username,
+      });
+      _commentController.clear();
+    }
+  }
+
+  Future<void> addReply(String commentId) async {
+    if (_replyController.text.isNotEmpty) {
+      await _firestore
+          .collection('users')
+          .doc(widget.userId)
+          .collection('assignments')
+          .doc(widget.docId)
+          .collection('comments')
+          .doc(commentId)
+          .collection('replies')
+          .add({
+        'reply': _replyController.text,
+        'timestamp': FieldValue.serverTimestamp(),
+        'userId': user!.uid,
+        'Username': Username,
+      });
+      _replyController.clear();
+      setState(() {
+        replyingToCommentId = null;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text('Task: ${widget.taskName}', style: TextStyle(fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                controller: _commentController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Enter comment',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.send),
+                    onPressed: addComment,
+                  ),
+                ),
+              ),
+            ),
+            StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('users')
+                  .doc(widget.userId)
+                  .collection('assignments')
+                  .doc(widget.docId)
+                  .collection('comments')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                var comments = snapshot.data!.docs;
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: comments.length,
+                  itemBuilder: (context, index) {
+                    var comment = comments[index];
+                    var commentData = comment.data() as Map<String, dynamic>;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ListTile(
+                          title: Text(commentData['Username'] ?? 'Anonymous'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(commentData['comment'] ?? 'No Comment'),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    commentData['timestamp'] != null
+                                        ? (commentData['timestamp'] as Timestamp).toDate().toString()
+                                        : '',
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        replyingToCommentId = comment.id;
+                                      });
+                                    },
+                                    child: Text(
+                                      'Reply',
+                                      style: TextStyle(color: Colors.blue),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (replyingToCommentId == comment.id)
+                          Padding(
+                            padding: EdgeInsets.only(left: 16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextFormField(
+                                  controller: _replyController,
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Enter reply',
+                                    suffixIcon: IconButton(
+                                      icon: Icon(Icons.send),
+                                      onPressed: () => addReply(comment.id),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        StreamBuilder<QuerySnapshot>(
+                          stream: _firestore
+                              .collection('users')
+                              .doc(widget.userId)
+                              .collection('assignments')
+                              .doc(widget.docId)
+                              .collection('comments')
+                              .doc(comment.id)
+                              .collection('replies')
+                              .orderBy('timestamp', descending: true)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return SizedBox.shrink();
+                            }
+
+                            var replies = snapshot.data!.docs;
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: replies.length,
+                              itemBuilder: (context, index) {
+                                var reply = replies[index];
+                                var replyData = reply.data() as Map<String, dynamic>;
+                                return Padding(
+                                  padding: EdgeInsets.only(left: 32.0),
+                                  child: ListTile(
+                                    title: Text(replyData['Username'] ?? 'Anonymous'),
+                                    subtitle: Text(replyData['reply'] ?? 'No Reply'),
+                                    trailing: Text(
+                                      replyData['timestamp'] != null
+                                          ? (replyData['timestamp'] as Timestamp).toDate().toString()
+                                          : '',
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

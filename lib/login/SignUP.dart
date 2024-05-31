@@ -26,7 +26,7 @@
 //   String? email, password, name, phoneNo;
 //   String? username;
 //   File? _image; // Declare _image as nullable File
-  
+
 //   final picker = ImagePicker(); // Declare an instance of ImagePicker
 
 //   Future getImage() async {
@@ -280,14 +280,12 @@
 //   }
 // }
 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
 import 'login_page.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -304,7 +302,7 @@ class SignUpState extends State<SignUp> {
   final _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   String? email, password, name, phoneNo;
-  String? Username,user;
+  String? Username, user;
 
   // Function to handle registration
   void _register() async {
@@ -312,9 +310,8 @@ class SignUpState extends State<SignUp> {
       _formKey.currentState!.save();
       try {
         // Use the email and password from the state variables
-        UserCredential userCredential =
-            await _auth.createUserWithEmailAndPassword(
-                email: email!, password: password!);
+        UserCredential userCredential = await _auth
+            .createUserWithEmailAndPassword(email: email!, password: password!);
         // After the user is created, store the additional details in Firestore
         FirebaseFirestore.instance
             .collection('users')
@@ -325,17 +322,17 @@ class SignUpState extends State<SignUp> {
           'phoneNo': phoneNo,
           'Username': Username,
           'User': 'Employ',
-          'uid':userCredential.user!.uid,
-  
-
+          'uid': userCredential.user!.uid,
         });
-          Navigator.of(context).pop();
+        Navigator.of(context).pop();
       } catch (e) {
-        print(e);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
       }
     }
   }
- 
+
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
@@ -348,181 +345,195 @@ class SignUpState extends State<SignUp> {
       ),
       body: Form(
         key: _formKey,
-         child: SingleChildScrollView(
-        child: Container(
-          height: screenHeight,
-          width: screenWidth,
-
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  "SignUp",
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Center(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // Username
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            border: new OutlineInputBorder(
-                              borderRadius: new BorderRadius.circular(25.0),
-                              borderSide: new BorderSide(),
-                            ),
-                            labelText: 'Username',
-                            hintText: 'Enter your username',
-                          ),
-                          validator: (input) =>
-                              input!.isEmpty ? 'Please enter your username' : null,
-                          onSaved: (input) => Username = input,
-                        ),
-                      ),
-                      
-
-                      // Name
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            border: new OutlineInputBorder(
-                              borderRadius: new BorderRadius.circular(25.0),
-                              borderSide: new BorderSide(),
-                            ),
-                            labelText: 'Name',
-                            hintText: 'Enter your name',
-                          ),
-                          validator: (input) =>
-                              input!.isEmpty ? 'Please enter your name' : null,
-                          onSaved: (input) => name = input,
-                        ),
-                      ),
-                  
-                      // Email
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            border: new OutlineInputBorder(
-                              borderRadius: new BorderRadius.circular(25.0),
-                              borderSide: new BorderSide(),
-                            ),
-                            labelText: 'Email',
-                            hintText: 'Enter your email',
-                          ),
-                          validator: (input) => !input!.contains('@')
-                              ? 'Please enter a valid email'
-                              : null,
-                          onSaved: (input) => email = input,
-                        ),
-                      ),
-                  
-                      // Phone number
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            border: new OutlineInputBorder(
-                              borderRadius: new BorderRadius.circular(25.0),
-                              borderSide: new BorderSide(),
-                            ),
-                            labelText: 'Phone No',
-                            hintText: 'Enter your phone number',
-                          ),
-                          validator: (input) => input!.isEmpty
-                              ? 'Please enter your phone number and should be an min 10 number'
-                              : null,
-                          onSaved: (input) => phoneNo = input,
-                        ),
-                      ),
-                  
-                      // Password
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            border: new OutlineInputBorder(
-                              borderRadius: new BorderRadius.circular(25.0),
-                              borderSide: new BorderSide(),
-                            ),
-                            labelText: 'Password',
-                            hintText: 'Enter your password',
-                          ),
-                          validator: (input) => input!.length < 6
-                              ? 'Password must be at least 6 characters'
-                              : null,
-                          onSaved: (input) => password = input,
-                          obscureText: true,
-                        ),
-                      ),
-                  
-                      // Confirm Password
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            border: new OutlineInputBorder(
-                              borderRadius: new BorderRadius.circular(25.0),
-                              borderSide: new BorderSide(),
-                            ),
-                            labelText: 'Confirm Password',
-                            hintText: 'Enter your password again',
-                          ),
-                          validator: (input) =>
-                              input == password ? 'Passwords do not match' : null,
-                          obscureText: true,
-                        ),
-                      ),
-                  
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Center(
-                                child: ElevatedButton(
-                                  child: Text('Back'),
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blueAccent
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: ElevatedButton(
-                                  child: Text('Register'),
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blueAccent
-                                  ),
-                                  onPressed: () {
-                                           _register();
-                                            Navigator.of(context).pushReplacement(
-                                              MaterialPageRoute(builder: (context) => LoginPage()),
-                                            );
-                                          },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+        child: SingleChildScrollView(
+          child: Container(
+            height: screenHeight,
+            width: screenWidth,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "SignUp",
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                   ),
                 ),
-              ),
-            ],
+                Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Username
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              border: new OutlineInputBorder(
+                                borderRadius: new BorderRadius.circular(25.0),
+                                borderSide: new BorderSide(),
+                              ),
+                              labelText: 'Username',
+                              hintText: 'Enter your username',
+                            ),
+                            validator: (input) => input!.isEmpty
+                                ? 'Please enter your username'
+                                : null,
+                            onSaved: (input) => Username = input,
+                          ),
+                        ),
+
+                        // Name
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              border: new OutlineInputBorder(
+                                borderRadius: new BorderRadius.circular(25.0),
+                                borderSide: new BorderSide(),
+                              ),
+                              labelText: 'Name',
+                              hintText: 'Enter your name',
+                            ),
+                            validator: (input) => input!.isEmpty
+                                ? 'Please enter your name'
+                                : null,
+                            onSaved: (input) => name = input,
+                          ),
+                        ),
+
+                        // Email
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                                borderSide: BorderSide(),
+                              ),
+                              labelText: 'Email',
+                              hintText: 'Enter your email',
+                            ),
+                            validator: (input) {
+                              if (!input!.contains('@')) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                            onSaved: (input) => email = input,
+                          ),
+                        ),
+
+                        // Phone number
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              border: new OutlineInputBorder(
+                                borderRadius: new BorderRadius.circular(25.0),
+                                borderSide: new BorderSide(),
+                              ),
+                              labelText: 'Phone No',
+                              hintText: 'Enter your phone number',
+                            ),
+                            validator: (input) => input!.isEmpty
+                                ? 'Please enter your phone number and should be an min 10 number'
+                                : null,
+                            onSaved: (input) => phoneNo = input,
+                          ),
+                        ),
+
+                        // Password
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                                borderSide: BorderSide(),
+                              ),
+                              labelText: 'Password',
+                              hintText: 'Enter your password',
+                            ),
+                            validator: (input) {
+                              RegExp regex = RegExp(
+                                r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$',
+                              );
+
+                              if (input!.isEmpty) {
+                                return 'Please enter a password';
+                              } else {
+                                if (!regex.hasMatch(input)) {
+                                  return 'Enter a valid password';
+                                }
+                              }
+                              return null;
+                            },
+                            onSaved: (input) => password = input,
+                            obscureText: true,
+                          ),
+                        ),
+
+                        // Confirm Password
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              border: new OutlineInputBorder(
+                                borderRadius: new BorderRadius.circular(25.0),
+                                borderSide: new BorderSide(),
+                              ),
+                              labelText: 'Confirm Password',
+                              hintText: 'Enter your password again',
+                            ),
+                            validator: (input) => input == password
+                                ? 'Passwords do not match'
+                                : null,
+                            obscureText: true,
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Center(
+                                  child: ElevatedButton(
+                                    child: Text('Back'),
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blueAccent),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: ElevatedButton(
+                                    child: Text('Register'),
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blueAccent),
+                                    onPressed: () {
+                                      _register();
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                            builder: (context) => LoginPage()),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

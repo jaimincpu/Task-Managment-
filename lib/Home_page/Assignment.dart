@@ -141,12 +141,11 @@
 //     }
 //   }
 // }
-
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'Hcommentpage.dart';
 
 class Assignment extends StatefulWidget {
   const Assignment({Key? key}) : super(key: key);
@@ -157,7 +156,7 @@ class Assignment extends StatefulWidget {
 
 class _AssignmentState extends State<Assignment> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  late String _uid;
+  String? _uid;
 
   @override
   void initState() {
@@ -167,7 +166,9 @@ class _AssignmentState extends State<Assignment> {
 
   Future<void> _getUserData() async {
     final User? user = _auth.currentUser;
-    _uid = user!.uid;
+    setState(() {
+      _uid = user?.uid;
+    });
   }
 
   Future<void> _updateTaskStatus(String assignmentId, String status) async {
@@ -181,6 +182,15 @@ class _AssignmentState extends State<Assignment> {
 
   @override
   Widget build(BuildContext context) {
+    if (_uid == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Assignment'),
+        ),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -243,28 +253,52 @@ class _AssignmentState extends State<Assignment> {
 
   Widget _getButtons(Map<String, dynamic> data, String assignmentId) {
     if (data['statstask'] == 'Completed') {
-return Container();}
-else{
+      return Container();
+    } else {
       return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          ElevatedButton(
-            onPressed: () {
-              _updateTaskStatus(assignmentId, "Hold");
-            },
-            child: Text("Hold"),
+          Flexible(
+            child: ElevatedButton(
+              onPressed: () {
+                _updateTaskStatus(assignmentId, "Hold");
+              },
+              child: Text("Hold"),
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              _updateTaskStatus(assignmentId, "processing");
-            },
-            child: Text("processing"),
+          Flexible(
+            child: ElevatedButton(
+              onPressed: () {
+                _updateTaskStatus(assignmentId, "processing");
+              },
+              child: Text("processing"),
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              _updateTaskStatus(assignmentId, "Completed");
-            },
-            child: Text("completed "),
-          )
+          Flexible(
+            child: ElevatedButton(
+              onPressed: () {
+                _updateTaskStatus(assignmentId, "Completed");
+              },
+              child: Text("completed"),
+            ),
+          ),
+          Flexible(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Hcommentpage(
+                      docId: assignmentId,
+                      userId: _uid!,
+                      taskName: data['taskName'],
+                    ),
+                  ),
+                );
+              },
+              child: Text('Comment'),
+            ),
+          ),
         ],
       );
     }

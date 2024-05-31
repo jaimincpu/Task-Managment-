@@ -248,7 +248,7 @@ class ChatPage extends StatelessWidget {
         title: Text(
           username, // Display the receiverUID instead of receiverEmail
           style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        ),   backgroundColor: Colors.deepPurple,
       ),
       body: Column(
         children: [
